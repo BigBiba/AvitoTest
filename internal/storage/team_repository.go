@@ -8,7 +8,7 @@ import (
 )
 
 type TeamRepository interface {
-	CreateTeam(ctx context.Context, teamName string, members []model.TeamMember) error
+	CreateTeam(ctx context.Context, team model.Team) error
 	GetTeam(ctx context.Context, teamName string) (team model.Team, err error)
 }
 
@@ -22,10 +22,13 @@ func NewPostgresTeamRepository(db *sql.DB) *PostgresTeamRepository {
 
 func (r *PostgresTeamRepository) GetTeam(ctx context.Context, teamName string) (model.Team, error) {
 	query := `SELECT u.user_id, u.username, u.is_active 
-FROM teams t JOIN users u ON t.user_id = u.user_id 
-WHERE team_name = $1;`
+				FROM teams t JOIN users u ON t.user_id = u.user_id 
+				WHERE team_name = $1;`
 	rows, err := r.db.QueryContext(ctx, query, teamName)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.Team{}, model.ErrTeamNotFound
+		}
 		return model.Team{}, err
 	}
 	defer rows.Close()
@@ -37,12 +40,6 @@ WHERE team_name = $1;`
 		}
 		members = append(members, member)
 	}
-	if err := rows.Err(); err != nil {
-		return model.Team{}, err
-	}
-	if len(members) == 0 {
-		return model.Team{}, errors.New("team not found") // надо это обработать
-	}
 	team := model.Team{
 		TeamName: teamName,
 		Members:  members,
@@ -50,7 +47,7 @@ WHERE team_name = $1;`
 	return team, nil
 }
 
-func (r *PostgresTeamRepository) CreateTeam(ctx context.Context, teamName string, members []model.TeamMember) error {
+func (r *PostgresTeamRepository) CreateTeam(ctx context.Context, team model.Team) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -61,10 +58,10 @@ func (r *PostgresTeamRepository) CreateTeam(ctx context.Context, teamName string
 		}
 	}()
 
-	for _, member := range members {
+	for _, member := range team.Members {
 		if _, err := tx.ExecContext(ctx,
 			`INSERT INTO teams (team_name, user_id) VALUES ($1, $2);`,
-			teamName, member.UserID); err != nil {
+			team.TeamName, member.UserID); err != nil {
 			return err
 		}
 		if _, err := tx.ExecContext(ctx,

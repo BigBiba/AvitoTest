@@ -4,10 +4,11 @@ import (
 	"AvitoTest/internal/model"
 	"AvitoTest/internal/storage"
 	"context"
+	"errors"
 )
 
 type TeamService interface {
-	CreateTeam(ctx context.Context, teamName string, members []model.TeamMember) (model.Team, error)
+	CreateTeam(ctx context.Context, team model.Team) error
 	GetTeam(ctx context.Context, teamName string) (model.Team, error)
 }
 
@@ -16,11 +17,32 @@ type teamService struct {
 	userRepo storage.UserRepository
 }
 
-func (s *teamService) CreateTeam(ctx context.Context, teamName string, members []model.TeamMember) (model.Team, error) {
+func NewTeamService(teamRep storage.TeamRepository, userRep storage.UserRepository) TeamService {
+	return &teamService{
+		teamRepo: teamRep,
+		userRepo: userRep,
+	}
+}
 
+func (s *teamService) CreateTeam(ctx context.Context, team model.Team) error {
+	_, err := s.teamRepo.GetTeam(ctx, team.TeamName)
+	if err == nil {
+		return model.ErrTeamAlreadyExists
+	}
+	if !errors.Is(err, model.ErrTeamNotFound) {
+		return err
+	}
+	err = s.teamRepo.CreateTeam(ctx, team)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *teamService) GetTeam(ctx context.Context, teamName string) (model.Team, error) {
-	//пойти в репу поискать команду с таким названием, если такой команды нет, то ошибка, команда не найдена
 	team, err := s.teamRepo.GetTeam(ctx, teamName)
+	if err != nil {
+		return model.Team{}, err
+	}
+	return team, nil
 }
