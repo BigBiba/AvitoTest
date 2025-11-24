@@ -14,14 +14,10 @@ type TeamService interface {
 
 type teamService struct {
 	teamRepo storage.TeamRepository
-	userRepo storage.UserRepository
 }
 
-func NewTeamService(teamRep storage.TeamRepository, userRep storage.UserRepository) TeamService {
-	return &teamService{
-		teamRepo: teamRep,
-		userRepo: userRep,
-	}
+func NewTeamService(teamRep storage.TeamRepository) TeamService {
+	return &teamService{teamRepo: teamRep}
 }
 
 func (s *teamService) CreateTeam(ctx context.Context, team model.Team) error {
