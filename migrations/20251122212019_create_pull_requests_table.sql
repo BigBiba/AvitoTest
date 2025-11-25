@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS pull_requests (
     name VARCHAR(255) NOT NULL,
     author_id VARCHAR(255) REFERENCES users(user_id),
     status pull_request_status NOT NULL DEFAULT 'OPEN'
+    merged_at TIMESTAMPTZ
 );
 -- +goose StatementEnd
 

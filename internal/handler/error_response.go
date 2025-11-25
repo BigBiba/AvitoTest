@@ -8,3 +8,10 @@ type ErrorDetail struct {
 type ErrorResponse struct {
 	Error ErrorDetail `json:"error"`
 }
+
+var InternalError = ErrorResponse{
+	Error: ErrorDetail{
+		Code:    "INTERNAL_ERROR",
+		Message: "internal server error",
+	},
+}

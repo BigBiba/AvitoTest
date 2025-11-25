@@ -32,11 +32,7 @@ func (h *TeamHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
 						Message: "resource not found"}})
 			return
 		}
-		helper.WriteJSON(w, http.StatusInternalServerError,
-			ErrorResponse{
-				Error: ErrorDetail{
-					Code:    "INTERNAL_ERROR",
-					Message: "internal server error"}})
+		helper.WriteJSON(w, http.StatusInternalServerError, InternalError)
 		return
 	}
 	helper.WriteJSON(w, http.StatusOK, team)
@@ -66,12 +62,7 @@ func (h *TeamHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		helper.WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{
-				Code:    "INTERNAL_ERROR",
-				Message: "internal server error",
-			},
-		})
+		helper.WriteJSON(w, http.StatusInternalServerError, InternalError)
 		return
 	}
 	helper.WriteJSON(w, http.StatusCreated, map[string]any{"team": team})

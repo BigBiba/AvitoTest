@@ -45,12 +45,7 @@ func (h *UserHandler) SetIsActive(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		helper.WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
-			Error: ErrorDetail{
-				Code:    "INTERNAL_ERROR",
-				Message: "internal server error",
-			},
-		})
+		helper.WriteJSON(w, http.StatusInternalServerError, InternalError)
 		return
 	}
 	helper.WriteJSON(w, http.StatusOK, user)
