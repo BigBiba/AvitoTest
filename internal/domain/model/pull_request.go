@@ -17,3 +17,10 @@ type PullRequest struct {
 	Reviewers []string   `json:"assigned_reviewers"`
 	MergedAt  *time.Time `json:"mergedAt,omitempty"`
 }
+
+type PullRequestShort struct {
+	PRId     string   `json:"pull_request_id"`
+	Name     string   `json:"pull_request_name"`
+	AuthorId string   `json:"author_id"`
+	Status   PRStatus `json:"status"`
+}

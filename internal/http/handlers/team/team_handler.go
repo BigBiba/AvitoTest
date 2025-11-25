@@ -1,8 +1,9 @@
-package handler
+package team
 
 import (
+	model2 "AvitoTest/internal/domain/model"
 	"AvitoTest/internal/helper"
-	"AvitoTest/internal/model"
+	http2 "AvitoTest/internal/http"
 	"AvitoTest/internal/service"
 	"encoding/json"
 	"errors"
@@ -24,15 +25,15 @@ func (h *TeamHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
 	team, err := h.svc.GetTeam(ctx, teamName)
 
 	if err != nil {
-		if errors.Is(err, model.ErrTeamNotFound) {
+		if errors.Is(err, model2.ErrTeamNotFound) {
 			helper.WriteJSON(w, http.StatusNotFound,
-				ErrorResponse{
-					Error: ErrorDetail{
+				http2.ErrorResponse{
+					Error: http2.ErrorDetail{
 						Code:    "NOT_FOUND",
 						Message: "resource not found"}})
 			return
 		}
-		helper.WriteJSON(w, http.StatusInternalServerError, InternalError)
+		helper.WriteJSON(w, http.StatusInternalServerError, http2.InternalError)
 		return
 	}
 	helper.WriteJSON(w, http.StatusOK, team)
@@ -41,10 +42,10 @@ func (h *TeamHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
 func (h *TeamHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	//получить команду, отдекодить, отправить в сервис. Обработать ошибочки
-	var team model.Team
+	var team model2.Team
 	if err := json.NewDecoder(r.Body).Decode(&team); err != nil {
-		helper.WriteJSON(w, http.StatusBadRequest, ErrorResponse{
-			Error: ErrorDetail{
+		helper.WriteJSON(w, http.StatusBadRequest, http2.ErrorResponse{
+			Error: http2.ErrorDetail{
 				Code:    "INVALID_PARAMS",
 				Message: "invalid request",
 			},
@@ -53,16 +54,16 @@ func (h *TeamHandler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 	}
 	err := h.svc.CreateTeam(ctx, team)
 	if err != nil {
-		if errors.Is(err, model.ErrTeamAlreadyExists) {
-			helper.WriteJSON(w, http.StatusBadRequest, ErrorResponse{
-				Error: ErrorDetail{
+		if errors.Is(err, model2.ErrTeamAlreadyExists) {
+			helper.WriteJSON(w, http.StatusBadRequest, http2.ErrorResponse{
+				Error: http2.ErrorDetail{
 					Code:    "TEAM_EXISTS",
 					Message: fmt.Sprintf("%s already exists", team.TeamName),
 				},
 			})
 			return
 		}
-		helper.WriteJSON(w, http.StatusInternalServerError, InternalError)
+		helper.WriteJSON(w, http.StatusInternalServerError, http2.InternalError)
 		return
 	}
 	helper.WriteJSON(w, http.StatusCreated, map[string]any{"team": team})

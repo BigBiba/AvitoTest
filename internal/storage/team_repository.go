@@ -1,15 +1,15 @@
 package storage
 
 import (
-	"AvitoTest/internal/model"
+	model2 "AvitoTest/internal/domain/model"
 	"context"
 	"database/sql"
 	"errors"
 )
 
 type TeamRepository interface {
-	CreateTeam(ctx context.Context, team model.Team) error
-	GetTeam(ctx context.Context, teamName string) (team model.Team, err error)
+	CreateTeam(ctx context.Context, team model2.Team) error
+	GetTeam(ctx context.Context, teamName string) (team model2.Team, err error)
 }
 
 type PostgresTeamRepository struct {
@@ -20,34 +20,34 @@ func NewPostgresTeamRepository(db *sql.DB) *PostgresTeamRepository {
 	return &PostgresTeamRepository{db: db}
 }
 
-func (r *PostgresTeamRepository) GetTeam(ctx context.Context, teamName string) (model.Team, error) {
+func (r *PostgresTeamRepository) GetTeam(ctx context.Context, teamName string) (model2.Team, error) {
 	query := `SELECT u.user_id, u.username, u.is_active 
 				FROM teams t JOIN users u ON t.user_id = u.user_id 
 				WHERE team_name = $1;`
 	rows, err := r.db.QueryContext(ctx, query, teamName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.Team{}, model.ErrTeamNotFound
+			return model2.Team{}, model2.ErrTeamNotFound
 		}
-		return model.Team{}, err
+		return model2.Team{}, err
 	}
 	defer rows.Close()
-	members := make([]model.TeamMember, 0)
+	members := make([]model2.TeamMember, 0)
 	for rows.Next() {
-		var member model.TeamMember
+		var member model2.TeamMember
 		if err := rows.Scan(&member.UserID, &member.Username, &member.IsActive); err != nil {
-			return model.Team{}, err
+			return model2.Team{}, err
 		}
 		members = append(members, member)
 	}
-	team := model.Team{
+	team := model2.Team{
 		TeamName: teamName,
 		Members:  members,
 	}
 	return team, nil
 }
 
-func (r *PostgresTeamRepository) CreateTeam(ctx context.Context, team model.Team) error {
+func (r *PostgresTeamRepository) CreateTeam(ctx context.Context, team model2.Team) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err

@@ -1,4 +1,4 @@
-package handler
+package http
 
 type ErrorDetail struct {
 	Code    string `json:"code"`

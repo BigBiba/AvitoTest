@@ -1,0 +1,31 @@
+services:
+  pr:
+    container_name: pr
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    build:
+      context: ./
+    depends_on:
+      - db
+
+  db:
+    image: postgres:17.0
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d postgres" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  db_data:
+    name: local_db_data

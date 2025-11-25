@@ -1,7 +1,7 @@
 package service
 
 import (
-	"AvitoTest/internal/model"
+	"AvitoTest/internal/domain/model"
 	"AvitoTest/internal/storage"
 	"context"
 )

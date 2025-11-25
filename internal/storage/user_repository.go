@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"AvitoTest/internal/model"
+	model "AvitoTest/internal/domain/model"
 	"context"
 	"database/sql"
 	"errors"
@@ -9,13 +9,14 @@ import (
 
 type UserRepository interface {
 	SetIsActive(ctx context.Context, userID string, isActive bool) (user model.User, err error)
+	GetUser(ctx context.Context, userID string) (user model.User, err error)
 }
 
 type PostgresUserRepository struct {
 	db *sql.DB
 }
 
-func NewPostgresUserRepository(db *sql.DB) *PostgresUserRepository {
+func NewPostgresUserRepository(db *sql.DB) UserRepository {
 	return &PostgresUserRepository{db: db}
 }
 
@@ -48,6 +49,26 @@ func (r *PostgresUserRepository) SetIsActive(ctx context.Context, userID string,
 	)
 	if err != nil {
 		return model.User{}, model.ErrUserNotFound
+	}
+	return user, nil
+}
+
+func (r *PostgresUserRepository) GetUser(ctx context.Context, userID string) (model.User, error) {
+	query := `
+SELECT user_id, username, is_active
+FROM users
+WHERE user_id = $1`
+	var user model.User
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(
+		&user.UserID,
+		&user.Username,
+		&user.IsActive,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.User{}, model.ErrUserNotFound
+		}
+		return model.User{}, err
 	}
 	return user, nil
 }
