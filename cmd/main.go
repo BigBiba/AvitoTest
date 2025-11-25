@@ -3,19 +3,20 @@ package main
 import (
 	ihttp "AvitoTest/internal/http"
 	"AvitoTest/internal/storage"
-	"fmt"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 	"os"
 )
 
 func main() {
-	fmt.Println("Hello World")
+	log.Println("Hello World")
+	log.Println("Hello World2")
 	if err := godotenv.Load(); err != nil {
 		log.Println("no .env file found, using environment variables only")
 	}
-
+	log.Println("Attempting to connect to Postgres...")
 	db, err := storage.NewPostgresDB()
 	if err != nil {
 		log.Fatal(err)
@@ -29,7 +30,7 @@ func main() {
 	}
 
 	log.Printf("starting server on :%s\n", port)
-	if err := http.ListenAndServe(":"+port, router); err != nil {
+	if err := http.ListenAndServe("0.0.0.0:"+port, router); err != nil {
 		log.Fatal(err)
 	}
 

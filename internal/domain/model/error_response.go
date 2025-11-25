@@ -1,4 +1,4 @@
-package http
+package model
 
 type ErrorDetail struct {
 	Code    string `json:"code"`
